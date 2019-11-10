@@ -5,24 +5,30 @@
   import Checkbox from '@smui/checkbox';
   import Textfield from '@smui/textfield';
 
-  const todos = []
+  let newTodo = ''
+  let todos = []
 </script>
 
 <main>
   <h1 >Todo app</h1>
   <Card style='min-width: 320px;'>
     <Content>
-      <Textfield label="Todo:" />
-      <Button variant=raised>
-        Add
-      </Button>
+      <form on:submit|preventDefault={() => {
+          todos = [...todos, { todo: newTodo, done: false }]
+          newTodo = ''
+        }}>
+        <Textfield bind:value={newTodo} label="Todo:" />
+        <Button variant=raised>
+          Add
+        </Button>
+      </form>
     </Content>
 
     {#if todos.length}
       <Content component={List}>
         {#each todos as { todo, done }}
-          <Item>
-            <Checkbox/>
+          <Item class={done ? 'done' : ''}>
+            <Checkbox bind:checked={done} />
             <Text>{todo}</Text>
           </Item>
         {/each}
