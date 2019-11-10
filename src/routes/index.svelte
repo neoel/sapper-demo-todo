@@ -1,12 +1,26 @@
 <script>
+	import { stores } from '@sapper/app'
+
   import Button, {Label} from '@smui/button';
   import Card, { Content } from '@smui/card';
   import List, {Item, Text} from '@smui/list';
   import Checkbox from '@smui/checkbox';
   import Textfield from '@smui/textfield';
 
+  const { session } = stores()
+
   let newTodo = ''
-  let todos = []
+  let todos = $session.todos || []
+
+  function save() {
+    fetch('save', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ todos })
+    })
+  }
 </script>
 
 <main>
@@ -34,6 +48,8 @@
         {/each}
       </Content>
     {/if}
+
+    <Button variant=raised on:click={save}>Save todo list</Button>
   </Card>
 </main>
 
