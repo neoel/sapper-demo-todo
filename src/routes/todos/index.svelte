@@ -29,7 +29,7 @@
 
 <List>
   {#each todos as id}
-    <a href='/todos/{id}'>
+    <a rel='prefetch' href='/todos/{id}'>
       <Item>
         <Text>Todo: {id}</Text>
       </Item>
