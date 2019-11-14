@@ -1,0 +1,56 @@
+version: '3.1'
+
+volumes: 
+  database:
+  node_modules:
+  __sapper__:
+  yarn-cache:
+
+networks:
+  default:
+    external:
+      name: todo
+
+services:
+  frontend:
+    image: node:alpine
+    depends_on:
+      - hasura
+    volumes:
+      - .:/app
+      - node_modules:/app/node_modules
+      - __sapper__:/app/__sapper__
+      - 'yarn-cache:/usr/local/share/.cache/yarn/'
+    command: sh -c "cd app; yarn; yarn run dev -p 80"
+    environment:
+      GRAPHQL_URI: $GRAPHQL_URI
+
+  postgres:
+    image: postgres:11
+    environment:
+      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+      POSTGRES_DB: $POSTGRES_DB
+    restart: always
+    volumes:
+      - ./sql:/docker-entrypoint-initdb.d
+      - database:/var/lib/postgresql/data
+
+  hasura:
+    image: hasura/graphql-engine:latest
+    depends_on:
+      - postgres
+    restart: always
+    command: >
+      /bin/sh -c "
+      graphql-engine \
+        --host postgres \
+        --port 5432 \
+        --user $POSTGRES_USER \
+        --password $POSTGRES_PASSWORD \
+        --dbname $POSTGRES_DB \
+        serve \
+        --server-port 80 \
+        --enable-console;
+      "
+    environment:
+      HASURA_GRAPHQL_CORS_DOMAIN: $HASURA_CORS_DOMAIN
