@@ -11,18 +11,30 @@ const client = new ApolloClient({
     : 'http://hasura/v1/graphql'
 });
 
+
+class Query {
+  constructor(options) {
+    this.store = readable(
+      { loading: true },
+      set => {
+        const subscription = client.watchQuery(options)
+          .subscribe(
+            ({ loading, data }) => set({ loading, data }),
+            error => set({ loading: false, error })
+          )
+        return () => subscription.unsubscribe()
+      }, 
+    )
+  }
+
+  subscribe(fn) {
+    return this.store.subscribe(fn)
+  }
+}
+
+
 export function query (options) {
-  this.store = readable(
-    { loading: true },
-    set => {
-      const subscription = client.watchQuery(options)
-        .subscribe(
-          ({ loading, data }) => set({ loading, data }),
-          error => set({ loading: false, error })
-        )
-      return () => subscription.unsubscribe()
-    }, 
-  )
+  return new Query(options)
 }
 
 export function mutation({ beforeMutation, ...options }) {
