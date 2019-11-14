@@ -1,5 +1,5 @@
 <script>
-	import { stores } from '@sapper/app'
+	import { goto } from '@sapper/app'
 
   import Button, {Label} from '@smui/button';
   import Card, { Content } from '@smui/card';
@@ -7,19 +7,35 @@
   import Checkbox from '@smui/checkbox';
   import Textfield from '@smui/textfield';
 
-  const { session } = stores()
+  import gql from 'graphql-tag'
+
+  import { mutation } from '../graphql'
+
+  const createTodo = mutation({
+    mutation: gql`
+      mutation createTodo($data: jsonb!) {
+        insert_todos(objects: {data:$data}) {
+          returning {
+            id
+          }
+        }
+      }
+    `
+  })
 
   let newTodo = ''
-  let todos = $session.todos || []
+  let todos = []
 
-  function save() {
-    fetch('save', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ todos })
-    })
+  async function save() {
+    const {
+      data: {
+        insert_todos: {
+          returning: [{ id }]
+        }
+      }
+    } = await createTodo({ data: todos })
+
+    goto(`todos/${id}`)
   }
 </script>
 
@@ -49,7 +65,7 @@
       </Content>
     {/if}
 
-    <Button variant=raised on:click={save}>Save todo list</Button>
+    <Button disabled={!todos.length} variant=raised on:click={save}>Save todo list</Button>
   </Card>
 </main>
 
